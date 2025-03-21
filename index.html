@@ -10,6 +10,8 @@
         body { padding: 20px; transition: 0.3s; }
         .dark-mode { background-color: #121212; color: white; }
         .result { font-weight: bold; margin-top: 10px; }
+        .increase { color: green; }
+        .decrease { color: red; }
     </style>
 </head>
 <body>
@@ -19,11 +21,18 @@
         <!-- Dark Mode Toggle -->
         <button class="btn btn-secondary my-3" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
 
+        <!-- Multiple Calculation Types -->
+        <h3>Percentage Calculator</h3>
+        <input type="number" id="initialValue" placeholder="Enter Initial Value" class="form-control">
+        <input type="number" id="finalValue" placeholder="Enter Final Value" class="form-control">
+        <button class="btn btn-success mt-2" onclick="calculatePercentage()">Calculate</button>
+        <p class="result" id="percentageResult"></p>
+
         <!-- Profit Margin Calculator -->
         <h3>Profit Margin Calculator</h3>
         <input type="number" id="costPrice" placeholder="Cost Price" class="form-control">
         <input type="number" id="sellingPrice" placeholder="Selling Price" class="form-control">
-        <button class="btn btn-success mt-2" onclick="calculateProfit()">Calculate</button>
+        <button class="btn btn-primary mt-2" onclick="calculateProfit()">Calculate</button>
         <p class="result" id="profitResult"></p>
 
         <!-- Currency Converter -->
@@ -34,7 +43,7 @@
             <option value="GBP">British Pound (GBP)</option>
             <option value="INR">Indian Rupee (INR)</option>
         </select>
-        <button class="btn btn-primary mt-2" onclick="convertCurrency()">Convert</button>
+        <button class="btn btn-info mt-2" onclick="convertCurrency()">Convert</button>
         <p class="result" id="currencyResult"></p>
 
         <!-- Analytics Chart -->
@@ -42,14 +51,29 @@
         <canvas id="analyticsChart"></canvas>
 
         <!-- Save & Load -->
-        <button class="btn btn-info mt-3" onclick="saveCalculation()">Save Calculation</button>
-        <button class="btn btn-warning mt-3" onclick="loadCalculation()">Load Calculation</button>
+        <button class="btn btn-warning mt-3" onclick="saveCalculation()">Save Calculation</button>
+        <button class="btn btn-danger mt-3" onclick="loadCalculation()">Load Calculation</button>
 
         <!-- Install PWA -->
         <button class="btn btn-success mt-3" id="installPWA" style="display: none;">Install App</button>
     </div>
 
     <script>
+        // Percentage Calculator
+        function calculatePercentage() {
+            let initial = parseFloat(document.getElementById("initialValue").value);
+            let final = parseFloat(document.getElementById("finalValue").value);
+            if (initial && final) {
+                let percentage = (((final - initial) / initial) * 100).toFixed(2);
+                let resultText = `Change: ${percentage}%`;
+                document.getElementById("percentageResult").innerText = resultText;
+                document.getElementById("percentageResult").className = "result " + (percentage >= 0 ? "increase" : "decrease");
+                updateAnalytics(percentage);
+            } else {
+                alert("Enter valid values!");
+            }
+        }
+
         // Profit Calculator
         function calculateProfit() {
             let cost = parseFloat(document.getElementById("costPrice").value);
@@ -80,6 +104,8 @@
         // Save Calculation (LocalStorage)
         function saveCalculation() {
             let data = {
+                initial: document.getElementById("initialValue").value,
+                final: document.getElementById("finalValue").value,
                 cost: document.getElementById("costPrice").value,
                 selling: document.getElementById("sellingPrice").value
             };
@@ -90,6 +116,8 @@
         function loadCalculation() {
             let savedData = JSON.parse(localStorage.getItem("calcData"));
             if (savedData) {
+                document.getElementById("initialValue").value = savedData.initial;
+                document.getElementById("finalValue").value = savedData.final;
                 document.getElementById("costPrice").value = savedData.cost;
                 document.getElementById("sellingPrice").value = savedData.selling;
             } else {
@@ -116,14 +144,14 @@
 
         // Analytics (Chart.js)
         let chartData = [];
-        function updateAnalytics(profit) {
-            chartData.push(profit);
+        function updateAnalytics(value) {
+            chartData.push(value);
             new Chart(document.getElementById("analyticsChart"), {
                 type: "line",
                 data: {
                     labels: Array.from({ length: chartData.length }, (_, i) => i + 1),
                     datasets: [{
-                        label: "Profit Trends",
+                        label: "Trends",
                         data: chartData,
                         borderColor: "blue",
                         fill: false
